@@ -1,3 +1,5 @@
+
+
 titles = {
     "Sampling steps": "How many times to improve the generated image iteratively; higher values take longer; very low values can produce bad results",
     "Sampling method": "Which algorithm to use to produce the image",
@@ -26,7 +28,7 @@ titles = {
     "latent nothing": "fill it with latent space zeroes",
     "Inpaint at full resolution": "Upscale masked region to target resolution, do inpainting, downscale back and paste into original image",
 
-    "Denoising strength": "Determines how little respect the algorithm should have for image's content. At 0, nothing will change, and at 1 you'll get an unrelated image.",
+    "Denoising strength": "Determines how little respect the algorithm should have for image's content. At 0, nothing will change, and at 1 you'll get an unrelated image. With values below 1.0, processing will take less steps than the Sampling Steps slider specifies.",
     "Denoising strength change factor": "In loopback mode, on each loop the denoising strength is multiplied by this value. <1 means decreasing variety so your sequence will converge on a fixed picture. >1 means increasing variety so your sequence will become more and more chaotic.",
 
     "Interrupt": "Stop processing images and return any results accumulated so far.",
@@ -51,6 +53,11 @@ titles = {
     "Variation strength": "How strong of a variation to produce. At 0, there will be no effect. At 1, you will get the complete picture with variation seed (except for ancestral samplers, where you will just get something).",
     "Resize seed from height": "Make an attempt to produce a picture similar to what would have been produced with same seed at specified resolution",
     "Resize seed from width": "Make an attempt to produce a picture similar to what would have been produced with same seed at specified resolution",
+
+    "Interrogate": "Reconstruct frompt from existing image and put it into the prompt field.",
+
+    "Images filename pattern": "Use following tags to define how filenames for images are chosen: [steps], [cfg], [prompt], [prompt_spaces], [width], [height], [sampler], [seed], [model_hash], [prompt_words], [date]; leave empty for default.",
+    "Directory name pattern": "Use following tags to define how subdirectories for images and grids are chosen: [steps], [cfg], [prompt], [prompt_spaces], [width], [height], [sampler], [seed], [model_hash], [prompt_words], [date]; leave empty for default.",
 }
 
 function gradioApp(){
@@ -141,6 +148,16 @@ function extract_image_from_gallery(gallery){
     return gallery[index];
 }
 
+function extract_image_from_gallery_img2img(gallery){
+    gradioApp().querySelectorAll('button')[1].click();
+    return extract_image_from_gallery(gallery);
+}
+
+function extract_image_from_gallery_extras(gallery){
+    gradioApp().querySelectorAll('button')[2].click();
+    return extract_image_from_gallery(gallery);
+}
+
 function requestProgress(){
     btn = gradioApp().getElementById("check_progress");
     if(btn==null) return;
@@ -174,11 +191,7 @@ window.addEventListener('paste', e => {
         });
 });
 
-function ask_for_style_name(style_name, text){
-    input = prompt('Style name:');
-    if (input === null) {
-        return [null, null]
-    }
-
-    return [input, text]
+function ask_for_style_name(_, prompt_text, negative_prompt_text) {
+    name_ = prompt('Style name:')
+    return name_ === null ? [null, null, null]: [name_, prompt_text, negative_prompt_text]
 }
